@@ -12,7 +12,7 @@ Space.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "decidim-idra"
+gem "decidim-idra", git: "https://github.com/URBREATH/decidim-module-idra.git"
 ```
 
 And then execute:
