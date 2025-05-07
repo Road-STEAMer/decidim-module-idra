@@ -69,20 +69,48 @@
                   <% end %>
                 </div>
                 <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                <div style="width: 100%" class="row">
-                  <p style="font-weight: bold">Additionl info</p>
-                  <div style="display: flex; flex-direction: column; margin-left: 30px">
-                    <span><strong>Dataset page: </strong> <a href="<%=result["landingPage"]%>"> <%=result["landingPage"]%> </a></span>
-                    <span><strong>Licenses: </strong><a href="<%=result["distributions"][0]["license"]["uri"]%> "> <%=result["distributions"][0]["license"]["name"]%> </a></span></span>
-                  <span><strong>Publisher: </strong> <%if result["publisher"].present?%><%=result["publisher"]["name"]%></span><% end %>
-                  <span><strong>Creator: </strong> <%if result["creator"].present?%><%=result["creator"]["name"]%></span><% end %>
-                  <span><strong>Release date: </strong><%=result["releaseDate"]%></span>
-                  <span><strong>Update date: </strong><%=result["updateDate"]%></span>
-                  <span><strong>Language: </strong><%=result["language"][0]%></span>
-                  <span><strong>Topic: </strong><%if result["theme"].present?%><%=result["theme"][0]["prefLabel"][0]["value"]%></span><% end %>
-                  <span><strong>Identifier: </strong><%=result["identifier"]%></span>
-                  <span><strong>Other identifiers: </strong><%=result["otherIdentifier"][0]%></span>
-                </div>
+                <div style="display: flex; flex-direction: column; margin-left: 30px">
+  <% if result["landingPage"].present? %>
+    <span><strong>Dataset page: </strong> <a href="<%= result["landingPage"] %>"> <%= result["landingPage"] %> </a></span>
+  <% end %>
+
+  <% if result.dig("distributions", 0, "license", "uri").present? && result.dig("distributions", 0, "license", "name").present? %>
+    <span><strong>Licenses: </strong> <a href="<%= result["distributions"][0]["license"]["uri"] %>"> <%= result["distributions"][0]["license"]["name"] %> </a></span>
+  <% end %>
+
+  <% if result.dig("publisher", "name").present? %>
+    <span><strong>Publisher: </strong> <%= result["publisher"]["name"] %></span>
+  <% end %>
+
+  <% if result.dig("creator", "name").present? %>
+    <span><strong>Creator: </strong> <%= result["creator"]["name"] %></span>
+  <% end %>
+
+  <% if result["releaseDate"].present? %>
+    <span><strong>Release date: </strong><%= result["releaseDate"] %></span>
+  <% end %>
+
+  <% if result["updateDate"].present? %>
+    <span><strong>Update date: </strong><%= result["updateDate"] %></span>
+  <% end %>
+
+  <% if result["language"].present? && result["language"][0].present? %>
+    <span><strong>Language: </strong><%= result["language"][0] %></span>
+  <% end %>
+
+  <% if result.dig("theme", 0, "prefLabel", 0, "value").present? %>
+    <span><strong>Topic: </strong><%= result["theme"][0]["prefLabel"][0]["value"] %></span>
+  <% end %>
+
+  <% if result["identifier"].present? %>
+    <span><strong>Identifier: </strong><%= result["identifier"] %></span>
+  <% end %>
+
+  <% if result["otherIdentifier"].present? && result["otherIdentifier"][0].present? %>
+    <span><strong>Other identifiers: </strong><%= result["otherIdentifier"][0] %></span>
+  <% end %>
+</div>
+
               </div>
               <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
             </div>

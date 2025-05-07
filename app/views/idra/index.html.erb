@@ -267,21 +267,44 @@
   <%= render partial: "help_section" %>
 
 
-<--! Admin settings for idra url -->
+<!-- Admin settings for idra url -->
+
 
 
   <% if current_user&.admin? %>
-  <div class="centered-form">
-    <%= form_with(url: idra_path, method: :get, class: "form") do |f| %>
-      <%= f.label :api_url, "Inserisci l'API URL" %>
-      <%= f.text_field :api_url, value: @api_url %>
+  <div style="text-align: center; margin-top: 20px;">
+  <button id="toggle-manage" class="button button__sm button__secondary" onclick="toggleManageForm()">Manage</button>
 
-      <%= f.label :api_catalogues_info_url, "Inserisci l'API Catalogues Info URL" %>
-      <%= f.text_field :api_catalogues_info_url, value: @api_catalogues_info_url %>
-
-      <%= f.submit "Invia" %>
-    <% end %>
   </div>
+
+  <div id="manage-form" style="display: none; margin-top: 20px; text-align: center;">
+    <div style="display: inline-block; text-align: left;">
+      <%= form_with(url: idra_path, method: :get, class: "form") do |f| %>
+       <div style="margin-bottom: 10px;">
+  <%= f.text_field :api_url, value: @api_url %>
+</div>
+
+<div style="margin-bottom: 10px;">
+  <%= f.text_field :api_catalogues_info_url, value: @api_catalogues_info_url %>
+</div>
+
+
+        <div style="text-align: center;">
+          <%= f.submit "Invia" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <script>
+    function toggleManageForm() {
+      const form = document.getElementById("manage-form");
+      const button = document.getElementById("toggle-manage");
+      const isHidden = form.style.display === "none";
+      form.style.display = isHidden ? "block" : "none";
+      button.textContent = isHidden ? "Close" : "Manage";
+    }
+  </script>
 <% end %>
 
 
