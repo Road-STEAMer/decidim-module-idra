@@ -272,24 +272,24 @@
 
 
   <% if current_user&.admin? %>
-  <div style="text-align: center; margin-top: 20px;">
-  <button id="toggle-manage" class="button button__sm button__secondary" onclick="toggleManageForm()">Manage</button>
+  <div style="text-align: center; margin-top: 20px; class="mb-2">
+  <button id="toggle-manage" class="button button__sm button__secondary mb-2" onclick="toggleManageForm()">Manage</button>
 
   </div>
 
   <div id="manage-form" style="display: none; margin-top: 20px; text-align: center;">
-    <div style="display: inline-block; text-align: left;">
+  <div style="text-align: left; display: flex; flex-direction: row; align-items: center; justify-content: center">
       <%= form_with(url: idra_path, method: :get, class: "form") do |f| %>
-       <div style="margin-bottom: 10px;">
-  <%= f.text_field :api_url, value: @api_url %>
-</div>
+       <span style="margin-bottom: 10px; margin-right: 1rem">
+  <%= f.text_field "Api url: ", value: @api_url %>
+</span>
 
-<div style="margin-bottom: 10px;">
-  <%= f.text_field :api_catalogues_info_url, value: @api_catalogues_info_url %>
-</div>
+<span style="margin-bottom: 10px;">
+  <%= f.text_field "Api catalogues info url: ", value: @api_catalogues_info_url %>
+</span>
 
 
-        <div style="text-align: center;">
+        <div style="text-align: center;" class="button button__sm button__secondary mb-2 mt-2 ml-2">
           <%= f.submit "Invia" %>
         </div>
       <% end %>
@@ -406,7 +406,7 @@
       var weight = parseInt(number[0].replace(/\(|\)/g, ''));
       var fontSize = weight
 
-      fontSize = Math.min(Math.max(fontSize, 15), 80);
+      fontSize = Math.min(Math.max(fontSize, 15), 30);
 
       span.style.fontSize = fontSize + 'px';
     }
@@ -619,48 +619,7 @@
       }
     }
   
-    function deleteDataset(id) {
-      var deleted = 0;
-      var counterText = document.getElementById("count");
-      var button = document.getElementById('buttonId-' + id);
-      if (confirm("Are you sure you want to delete this dataset?")) {
-        fetch('/idra_delete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': document.querySelector("meta[name=csrf-token]").content
-          },
-          body: JSON.stringify({ selected_dataset_id: id })
-        })
-        .then(response => {
-  if (response.ok) {
-    updatePartialView();
-
-    button.setAttribute('data-star', '0');
-    button.innerHTML = "☆"; 
-    button.style.color = ""; 
     
-    counter--; 
-    console.log("Updated counter: " + counter);  // Log per debuggare
-    counterText.innerHTML = counter; 
-    
-    var deleteEvent = new CustomEvent('datasetDeleted', { detail: { deleted: deleted } });
-    document.dispatchEvent(deleteEvent);
-    
-    closeModalIfEmpty(true);
-    
-    let firstDataset = document.querySelector('.dataset:first-child'); 
-    if (firstDataset) {
-      firstDataset.remove();  
-    }
-  } else {
-    console.error('Error deleting dataset');
-  }
-})
-
-      }
-    }
-  
     // Rendi filterDatasets e deleteDataset globali
     window.filterDatasets = filterDatasets;
     window.deleteDataset = deleteDataset;
