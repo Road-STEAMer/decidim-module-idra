@@ -1,245 +1,74 @@
 class IdraController < Decidim::ApplicationController
   def index
+    @api_url = params[:api_url].presence || default_api_url
+    @catalogues_info_url = params[:api_catalogues_info_url].presence || default_catalogues_info_url
 
-    @api_url = params[:api_url].presence || "https://idra-dev.urbreath.tech/Idra/api/v1/client/search"
-    url = URI(@api_url)
+    client = ApiClient.new(api_url: @api_url, catalogues_info_url: @catalogues_info_url)
+    catalogues_info = client.fetch_catalogues_info
+    nodes = catalogues_info.map { |cat| cat["id"].to_i }
 
-    @api_catalogues_info_url = params[:api_catalogues_info_url] || "https://idra-dev.urbreath.tech/Idra/api/v1/client/cataloguesInfo"
-    api_catalogues_info_url =  @api_catalogues_info_url
+    filters = build_filters(params)
 
-    https = Net::HTTP.new(url.host, url.port)
-    https.use_ssl = true
-    catalogues_info_url = URI(api_catalogues_info_url)
-    catalogues_info_https = Net::HTTP.new(catalogues_info_url.host, catalogues_info_url.port)
-    catalogues_info_https.use_ssl = true
-    catalogues_info_request = Net::HTTP::Get.new(catalogues_info_url)
-    catalogues_info_response = catalogues_info_https.request(catalogues_info_request)
-    catalogues_info_data = JSON.parse(catalogues_info_response.body)
-    request = Net::HTTP::Post.new(url)
-    request["Content-Type"] = "application/json"
+    @page = params[:page].to_i
+    @page = 1 if @page < 1
+    @per_page = (params[:rows] || 5).to_i
+    start = (@page - 1) * @per_page
 
-    # require "net/http"
-    # require "json"
+    payload = build_payload(filters, nodes, start, @per_page)
 
-    # url = URI("http://91.109.58.79/Idra/api/v1/client/search")
-    # http = Net::HTTP.new(url.host, url.port)
-
-    # catalogues_info_url = URI("http://91.109.58.79/Idra/api/v1/client/cataloguesInfo")
-    # catalogues_info_http = Net::HTTP.new(catalogues_info_url.host, catalogues_info_url.port)
-
-    # catalogues_info_request = Net::HTTP::Get.new(catalogues_info_url)
-    # catalogues_info_response = catalogues_info_http.request(catalogues_info_request)
-    # catalogues_info_data = JSON.parse(catalogues_info_response.body)
-
-    # request = Net::HTTP::Post.new(url)
-    # request["Content-Type"] = "application/json"
-
-
-    #form
-
-    @search_value = params[:search].presence || '""'
-    selected_option = params[:field].presence || "title"
-    field = selected_option.presence || "title"
-    @rows = (params[:rows].presence || "5").to_i # Convert to integer if needed
-    @start = (params[:start].presence || "0").to_i # Convert to integer if needed
-    start = @start
-
-    @nodes = []
-
-      catalogues_info_data.each do |catalogue_info|
-        id = catalogue_info["id"]
-        @nodes << id.to_i
-      end
-
-   
-    filters = [{
-      "field": "ALL",
-      "value": @search_value,
-    }]
-    
-
-    @tags_value = params[:tags_value]
-
-    if @tags_value.present?
-      filters.push(
-        {
-          "field": "tags",
-          "value": @tags_value.start_with?(",") ? @tags_value[1..-1] : @tags_value,
-        }
-      )
-    end
-
-    @formats_value = params[:formats_value]
-
-    if @formats_value.present?
-      filters.push(
-        {
-          "field": "distributionFormats",
-          "value": @formats_value.start_with?(",") ? @formats_value[1..-1] : @formats_value,
-        }
-      )
-    end
-
-    @licenses_value = params[:licenses_value]
-
-    if @licenses_value.present?
-      filters.push(
-        {
-          "field": "distributionLicenses",
-          "value": @licenses_value.start_with?(",") ? @licenses_value[1..-1] : @licenses_value,
-        }
-      )
-    end
-
-    @catalogues_value = params[:catalogues_value]
-
-    if @catalogues_value.present?
-      filters.push(
-        {
-          "field": "catalogues",
-          "value": @catalogues_value.start_with?(",") ? @catalogues_value[1..-1] : @catalogues_value,
-        }
-      )
-    end
-
-    @categories_value = params[:categories_value]
-
-    if @categories_value.present?
-      filters.push(
-        {
-          "field": "categories",
-          "value": @categories_value.start_with?(",") ? @categories_value[1..-1] : @categories_value,
-        }
-      )
-    end
-
-    deleted_filter = params[:deleted_filter]
-
-    request.body = JSON.dump({
-      "filters": filters,
-      "live": false,
-      "sort": {
-        "field": field,
-        "mode": "asc",
-
-      },
-      "rows": @rows.to_i,
-      "start": start,
-      "nodes": @nodes,
-      "euroVocFilter": {
-        "euroVoc": false,
-        "sourceLanguage": "",
-        "targetLanguages": [],
-      },
-    })
-
-    response = https.request(request) #change https to http if use the other configuration
-
-    @api_results = JSON.parse(response.read_body)
-
+    @api_results = client.search_datasets(payload)
     @total_results = @api_results["count"]
 
+    extract_facets(@api_results)
+    load_user_datasets
 
-    @selected_filters = []
+    render "decidim/idra/index"
+  end
 
-    @deleted_filters = []
+  private
 
-    @limit = 10
+  def default_api_url
+    "https://idra-dev.urbreath.tech/Idra/api/v1/client/search"
+  end
 
-    if @api_results.size > 0
-      @tags = @api_results["facets"][0]
-      @formats = @api_results["facets"][1]
-      @licenses = @api_results["facets"][2]
-      @catalogues = @api_results["facets"][3]
-      @categories = @api_results["facets"][4]
+  def default_catalogues_info_url
+    "https://idra-dev.urbreath.tech/Idra/api/v1/client/cataloguesInfo"
+  end
+
+  def build_filters(params)
+    filters = [{ field: "ALL", value: params[:search].presence || "" }]
+
+    %i[tags_value formats_value licenses_value catalogues_value categories_value].each do |key|
+      if params[key].present?
+        filters << {
+          field: key.to_s.gsub("_value", ""),
+          value: params[key].delete_prefix(",")
+        }
+      end
     end
+    filters
+  end
 
-    @tags_values = @tags["values"]
-    @formats_values = @formats["values"]
-    @licenses_values = @licenses["values"]
-    @catalogues_values = @catalogues["values"]
-    @categories_values = @categories["values"]
+  def build_payload(filters, nodes, start, rows)
+    {
+      filters: filters,
+      live: false,
+      sort: { field: params[:field].presence || "title", mode: "asc" },
+      rows: rows,
+      start: start,
+      nodes: nodes,
+      euroVocFilter: { euroVoc: false, sourceLanguage: "", targetLanguages: [] }
+    }
+  end
 
-    if params[:tags_value].present?
-      @selected_filters << params[:tags_value].split(",")
-    end
+  def extract_facets(api_results)
+    facets = api_results["facets"] || []
+    @tags, @formats, @licenses, @catalogues, @categories = facets[0..4]
+  end
 
-    if params[:formats_value].present?
-      @selected_filters << params[:formats_value].split(",")
-    end
-
-    if params[:licenses_value].present?
-      @selected_filters << params[:licenses_value].split(",")
-    end
-
-    if params[:catalogues_value].present?
-      @selected_filters << params[:catalogues_value].split(",")
-    end
-
-    if params[:categories_value].present?
-      @selected_filters << params[:categories_value].split(",")
-    end
-
-    if params[:deleted_filter].present?
-      @selected_filters.delete(deleted_filter)
-    end
-
+  def load_user_datasets
     @datasets = SavedDatasets.where(decidim_user: current_user)
     @element_count = @datasets.count
-
-    @list = []
-
-    @datasets.each do |data|
-      @list << data.dataset_id
-    end
-
-    render "idra/index"
-  end
-
-    def create
-      selected_title = params[:selected_titles]
-      selected_dataset_id = params[:selected_dataset_id]
-      @selected_dataset_id = selected_dataset_id
-      selected_url = params[:selected_url]
-  
-      unless SavedDatasets.exists?(dataset_id: selected_dataset_id, decidim_user: current_user)
-        saved_dataset = SavedDatasets.create(title: selected_title, decidim_user: current_user, url: selected_url, dataset_id: selected_dataset_id)
-        @datasets = SavedDatasets.where(decidim_user: current_user)
-      end
-  
-      render partial: "datasets_list"
-    end
-    
-  
-def delete
-  dataset_id = params[:selected_dataset_id]
-  dataset = SavedDatasets.find_by(dataset_id: dataset_id, decidim_user: current_user)
-
-  if dataset.present? && dataset.destroy
-    # Dataset successfully deleted
-    render partial: "datasets_list"
-  else
-    # Handle error if dataset not found or couldn't be deleted
-    render json: { error: 'Could not delete dataset' }, status: :unprocessable_entity
-  end
-end
-
-  
-  def update
-    @datasets = SavedDatasets.where(decidim_user: current_user)
-    render partial: "datasets_list"
-  end
-
-
-  def modal_editor
-    @datasets = SavedDatasets.where(decidim_user: current_user)
-    render partial: "datasets_list"
-  end
-
-  def datasets
-    @datasets = SavedDatasets.where(decidim_user: current_user)
-    respond_to do |format|
-      format.json { render json: @datasets }
-    end
+    @list = @datasets.pluck(:dataset_id)
   end
 end

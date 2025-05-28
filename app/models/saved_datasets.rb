@@ -5,6 +5,7 @@ class SavedDatasets < ApplicationRecord
     validates :title, presence: true, length: { maximum: 255 }
     validates :decidim_user_id, presence: true
     validates :url, presence: true, length: { maximum: 255 }
-    validates :dataset_id, presence: true, uniqueness: true, length: { maximum: 255 }
+    validates :dataset_id, presence: true, uniqueness: { scope: :decidim_user_id }
+
   end
   

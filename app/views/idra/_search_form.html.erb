@@ -1,27 +1,89 @@
-<form class="search-form" action="<%= url_for(controller: "idra", action: "index") %>" method="get">
-          <% search_value = params[:search].presence || session[:search_value].presence || "" %>
-          <input type="text" name="search" value="<%= search_value.presence%>">
-          <div class="dropdown-container">
-            <div class="content-on-left">
-              <div class="dropdown-pages">
-                <p style="color: black">Results:</p>
-                <%= select_tag "rows", options_for_select({ "5" => 5, "15" => 15, "25" => 25, "50" => 50 }, @rows) %>
-              </div>
-              <div class="dropdown-sort-by">
-                <p style="color: black">Sort by:</p>
-                <%= select_tag "field", options_for_select({ "Release date" => "releaseDate", "Updated" => "updateDate", "Catalogue" => "nodeID", "Title" => "title" }, @rows) %>
-              </div>
-            </div>
-            <input class="button submit-button " type="submit" value="Submit">
-          </div>
-          <p <%= "hidden" if @search_value == '""'%> style="color:black; padding-bottom:20px"><%= @total_results %> results found.</p>
-        </form>
-        <% if @search_value === '""'%>
-          <div class="cloud">
-            <p>
-              <% @tags_values.each do |tag| %>
-                <span class="search-trigger" rel="nofollow"><%= tag["facet"] %></span>
-              <% end %>
-            </p>
-          </div>
-        <%end%>
+<%= form_tag(idra_path, method: :get, class: "search-form") do %>
+    <%= text_field_tag :search, params[:search].presence || session[:search_value], placeholder: "Search..." %>
+  
+    <div class="dropdown-container">
+      <div class="content-on-left">
+        <div class="dropdown-pages">
+          <p style="color: black">Results:</p>
+          <%= select_tag :rows, options_for_select([5, 15, 25, 50], @rows.to_i), include_blank: false %>
+        </div>
+        <div class="dropdown-sort-by">
+          <p style="color: black">Sort by:</p>
+          <%= select_tag :field, options_for_select([["Release date", "releaseDate"], ["Updated", "updateDate"], ["Catalogue", "nodeID"], ["Title", "title"]], params[:field]) %>
+        </div>
+      </div>
+      <%= submit_tag "Submit", class: "button submit-button" %>
+    </div>
+  
+    <% if @total_results.present? %>
+      <p style="color:black; padding-bottom:20px"><%= @total_results %> results found.</p>
+    <% end %>
+  <% end %>
+  
+  <% if params[:search].blank? %>
+    <div class="cloud">
+    <% if @tags && @tags["values"].present? %>
+    <% @tags["values"].each do |tag| %>
+      <span class="search-trigger" rel="nofollow"><%= tag["facet"] %></span>
+    <% end %>
+  <% end %>
+  
+    </div>
+  <% end %>
+  
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  const spans = Array.from(document.querySelectorAll(".cloud span"));
+  const colors = ["--primary", "--secondary", "--warning"];
+  const parentContainer = document.querySelector(".cloud");
+  const searchInput = document.querySelector("input[name='search']");
+  const form = document.querySelector(".search-form");
+
+  spans.forEach((span, index) => {
+    // Colore ciclico
+    span.style.color = `var(${colors[index % colors.length]})`;
+
+    // Estrai numero e imposta font-size
+    const text = span.textContent.trim();
+    const match = text.match(/\((\d+)\)/);
+    if (match) {
+      const weight = parseInt(match[1], 10);
+      span.textContent = text.replace(/\(\d+\)/, "").trim() + " ";
+      span.style.fontSize = `${Math.min(Math.max(weight, 15), 30)}px`;
+    }
+
+    // Hover highlight
+    span.addEventListener("mouseenter", function () {
+      const rgb = getComputedStyle(this).color.match(/\d+/g);
+      this.style.backgroundColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.3)`;
+    });
+
+    span.addEventListener("mouseleave", function () {
+      this.style.backgroundColor = "";
+    });
+
+    // Click trigger search
+    span.addEventListener("click", function () {
+      if (searchInput && form) {
+        searchInput.value = span.textContent.trim();
+        form.submit();
+      }
+    });
+  });
+
+  // Shuffle gli span
+  const shuffled = shuffle(spans);
+  if (parentContainer) {
+    parentContainer.innerHTML = "";
+    shuffled.forEach((s) => parentContainer.appendChild(s));
+  }
+});
+</script>

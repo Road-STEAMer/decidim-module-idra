@@ -1,0 +1,6 @@
+<%= render partial: "search_form" %>
+<% if params[:search].present? %>
+  <%= render partial: "top_buttons" %>
+  <%= render partial: "search_results" %>
+<% end %>
+<%= render partial: "datasets_list" %>

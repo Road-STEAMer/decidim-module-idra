@@ -1,159 +1,178 @@
 <script>
-  window.savedDatasets = <%= raw @datasets.as_json.to_json %>;
+  document.addEventListener("DOMContentLoaded", () => {
+    const savedDatasets = <%= raw @datasets.as_json.to_json %>;
+    const favouritesList = <%= raw @list.to_json %> || [];
+
+    const csrfToken = document.querySelector("[name='csrf-token']").content;
+
+    // Gestione espansione descrizione
+    document.querySelectorAll(".expand-link").forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        const index = link.dataset.cardIndex;
+        const content = document.getElementById(`full-content-${index}`);
+        const isHidden = content.style.display === "none";
+
+        content.style.display = isHidden ? "block" : "none";
+        link.textContent = isHidden ? "Close" : "Read More";
+      });
+    });
+
+
+    const updateStarIcon = (id, isFavourite) => {
+      const button = document.getElementById(`buttonId-${id}`);
+      if (!button) return;
+
+      button.dataset.star = isFavourite ? "1" : "0";
+      button.innerHTML = isFavourite
+        ? `<span style="color: var(--warning)">★</span>`
+        : "☆";
+    };
+
+    window.showFavourites = () => {
+      document.getElementById("favouritesModal")?.style.setProperty("display", "block");
+    };
+
+    window.closeFavourites = () => {
+      document.getElementById("favouritesModal")?.style.setProperty("display", "none");
+    };
+  });
+
+
+  function getCSRFToken() {
+  return document.querySelector('meta[name="csrf-token"]').content;
+}
+
+async function addToFavourites(title, datasetId, url) {
+  try {
+    const response = await fetch('/decidim/idra/api/v1/favourites', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': getCSRFToken(),
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+          title: title,
+          dataset_id: datasetId,
+          url: url
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert('Errore: ' + (errorData.errors ? errorData.errors.join(', ') : 'Salvataggio fallito'));
+      return;
+    }
+
+    // Aggiorna icona stella
+    const btn = document.getElementById(`buttonId-${datasetId}`);
+    if (btn) {
+      btn.dataset.star = "1";
+      btn.innerHTML = `<span style="color: var(--warning)">★</span>`;
+    }
+
+    alert(`Aggiunto ai preferiti: ${title}`);
+  } catch (error) {
+    alert('Errore nella richiesta: ' + error.message);
+  }
+}
+
 </script>
+
 
 
 <% @api_results["results"].each_with_index do |result, index| %>
   <div class="results-card">
-        <div class="results-card-title">
-            <div style="display: flex; align-items: baseline; justify-content: space-between">
-              <h4><a><%= result["title"] %></a></h4>
-              <!-- Save dataset -->
-              <% if current_user %>
-                <button id='buttonId-<%= result["id"] %>' class="bg-transparent" style="cursor: pointer; transform: scale(1.5,1.5)" 
-  onclick="toggleStarAndSaveTitle('<%= result['title'] %>', '<%= result["id"] %>', '<%= result['landingPage'] %>');
-  " data-star="<% if @list.include?(result["id"]) %>1<% else %>0<% end %>">
-                  <% if @list.include?(result["id"]) %>
-                    <span style="color: var(--warning)">★</span>
-                  <% else %>☆<% end %>
-                </button>
+    <div class="results-card-title">
+      <div style="display: flex; align-items: baseline; justify-content: space-between">
+        <h4><a><%= result["title"] %></a></h4>
+        <% if current_user %>
+          <button id="buttonId-<%= result['id'] %>" class="bg-transparent" style="cursor: pointer; transform: scale(1.5,1.5)" 
+            onclick="addToFavourites('<%= j result['title'] %>', '<%= j result['id'] %>', '<%= j result['landingPage'] %>');"
+            data-star="<%= @list.include?(result['id']) ? '1' : '0' %>">
+            <% if @list.include?(result["id"]) %>
+              <span style="color: var(--warning)">★</span>
+            <% else %>☆<% end %>
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="results-card-body">
+      <div class="truncated-content">
+        <%= truncate_html(result["description"], length: 300) %>
+      </div>
+      <div class="full-content" style="display: none;" id="full-content-<%= index %>">
+      <%= sanitize(result["description"], tags: %w[p br strong em ul ol li a], attributes: %w[href]) %>
+        <div class="column" style="width: 100%; margin: 0px; padding:20px 0px 50px 0px">
+          <hr style="height: 1px; border: none; background-color: lightgray; width: 100%; padding: 0px; margin: 0px">
+          <div style="width: 100%" class="row">
+            <p style="font-weight: bold">Tags</p>
+            <div class="tag-container" style="margin-bottom: 20px; margin-top: 0px">
+              <% result["keywords"].each do |obj| %>
+                <div class="format-box"><%= obj %></div>
               <% end %>
             </div>
           </div>
-          <div class="results-card-body">
-            <div class="truncated-content">
-              <%= truncate_html(result["description"], length: 300) %>
-            </div>
-            <div class="full-content" style="display: none;", id="full-content-<%= index %>">
-              <%= result["description"].html_safe %>
-              <div class="column" style="width: 100%; margin: 0px; padding:20px 0px 50px 0px">
-                <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                <div style="width: 100%" class="row">
-                  <p style="font-weight: bold">Tags</p>
-                  <div class="tag-container" style="margin-bottom: 20px; margin-top: 0px">
-                    <% result["keywords"].each_with_index do |obj, index| %>
-                      <div class="format-box"><%= obj %></div>
-                    <% end %>
-                  </div>
+          <hr style="height: 1px; border: none; background-color: lightgray; width: 100%; padding: 0px; margin: 0px">
+          <div class="row">
+            <p style="font-weight: bold">Resources</p>
+            <% result["distributions"].each_with_index do |obj, i| %>
+              <div class="row" style="display:flex; flex-direction: row; margin: 20px;">
+                <div class="column"><%= obj["format"] %></div>
+                <div class="column"><%= obj["title"] %></div>
+                <div class="column">
+                  <%= obj["description"].presence || "No description available" %>
                 </div>
-                <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                <div class="row">
-                  <p style="font-weight: bold">Resources</p>
-                  <% result["distributions"].each_with_index do |obj, index| %>
-                    <div class="row" style="display:flex; flex-direction: rows; margin: 20px;">
-                      <div class="column"><%= obj["format"] %></div>
-                      <div class="column"><%= obj["title"] %></div>
-                      <% if obj["description"].size > 0 %>
-                        <div class="column"><%= obj["description"] %></div>
-                      <% else %>
-                        <div class="column"> No description available </div>
-                      <% end %>
-                      <div class="column">
-                        <button class="button show-more-details-button" style="margin:0px; padding:10px" data-target="show-more-details-<%= index %>">+</button>
-                        <%= link_to "Download", obj["downloadURL"], class: "button", style: "margin:0px; padding:10px", target: "_blank", rel: "nofollow" %>
-                      </div>
-                    </div>
-                    <div id="show-more-details-<%= index %>" class="row" style="background-color:rgba(var(--secondary-rgb), 0.1);border-radius: 5px; 
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);display:none; margin: 0px 60px 0px 30px; padding: 20px">
-                      <strong>Title:</strong> <%= obj["title"] %>
-                      <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                      <strong>Format:</strong>: <%= obj["format"] %>
-                      <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                      <strong>download URL</strong>: <%= link_to obj["donwloadURL"], obj["downloadURL"], target: "_blank", rel: "nofollow" %>
-                      <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                      <strong>License</strong>: <%= link_to obj["license"]["name"], obj["downloadURL"], target: "_blank", rel: "nofollow" %>
-                      <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                      <strong>Media type</strong>: <%= obj["mediaType"] %>
-                      <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                    </div>
-                  <% end %>
+                <div class="column">
+                  <button class="button show-more-details-button" style="margin:0px; padding:10px" data-target="show-more-details-<%= i %>">+</button>
+                  <%= link_to "Download", obj["downloadURL"], class: "button", style: "margin:0px; padding:10px", target: "_blank", rel: "nofollow" %>
                 </div>
-                <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-                <div style="width: 100%" class="row">
-                  <p style="font-weight: bold">Additionl info</p>
-                  <div style="display: flex; flex-direction: column; margin-left: 30px">
-                  <% if result["landingPage"].present? %>
-                    <span><strong>Dataset page: </strong> <a href="<%= result["landingPage"] %>"> <%= result["landingPage"] %> </a></span>
-                  <% end %>
-                
-                  <% if result.dig("distributions", 0, "license", "uri").present? && result.dig("distributions", 0, "license", "name").present? %>
-                    <span><strong>Licenses: </strong> <a href="<%= result["distributions"][0]["license"]["uri"] %>"> <%= result["distributions"][0]["license"]["name"] %> </a></span>
-                  <% end %>
-                
-                  <% if result.dig("publisher", "name").present? %>
-                    <span><strong>Publisher: </strong> <%= result["publisher"]["name"] %></span>
-                  <% end %>
-                
-                  <% if result.dig("creator", "name").present? %>
-                    <span><strong>Creator: </strong> <%= result["creator"]["name"] %></span>
-                  <% end %>
-                
-                  <% if result["releaseDate"].present? %>
-                    <span><strong>Release date: </strong><%= result["releaseDate"] %></span>
-                  <% end %>
-                
-                  <% if result["updateDate"].present? %>
-                    <span><strong>Update date: </strong><%= result["updateDate"] %></span>
-                  <% end %>
-                
-                  <% if result["language"].present? && result["language"][0].present? %>
-                    <span><strong>Language: </strong><%= result["language"][0] %></span>
-                  <% end %>
-                
-                  <% if result.dig("theme", 0, "prefLabel", 0, "value").present? %>
-                    <span><strong>Topic: </strong><%= result["theme"][0]["prefLabel"][0]["value"] %></span>
-                  <% end %>
-                
-                  <% if result["identifier"].present? %>
-                    <span><strong>Identifier: </strong><%= result["identifier"] %></span>
-                  <% end %>
-                
-                  <% if result["otherIdentifier"].present? && result["otherIdentifier"][0].present? %>
-                    <span><strong>Other identifiers: </strong><%= result["otherIdentifier"][0] %></span>
-                  <% end %>
-                </div>
-                
               </div>
-              <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
-            </div>
-          </div>
-          <a href="#" class="expand-link button small hollow card__button" style="margin-top: 2em; padding: 3px;" data-card-index="<%= index %>">Read More</a>
-          <div class="format-container">
-            <% displayed_formats = [] %>
-            <% result["distributions"].each do |elem| %>
-              <% unless elem["format"].to_s.empty? || displayed_formats.include?(elem["format"]) %>
-                <div class="format-box">
-                  <%= elem["format"] %>
-                </div>
-                <% displayed_formats << elem["format"] %>
-              <% end %>
+              <div id="show-more-details-<%= i %>" class="row" style="background-color:rgba(var(--secondary-rgb), 0.1);border-radius: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);display:none; margin: 0px 60px 0px 30px; padding: 20px">
+                <strong>Title:</strong> <%= obj["title"] %>
+                <hr style="height: 1px; border: none; background-color: lightgray; width: 100%; padding: 0px; margin: 0px">
+                <strong>Format:</strong> <%= obj["format"] %>
+                <hr style="height: 1px; border: none; background-color: lightgray; width: 100%; padding: 0px; margin: 0px">
+                <strong>Download URL:</strong> <%= link_to obj["downloadURL"], obj["downloadURL"], target: "_blank", rel: "nofollow" %>
+                <hr style="height: 1px; border: none; background-color: lightgray; width: 100%; padding: 0px; margin: 0px">
+                <strong>License:</strong> <%= obj.dig("license", "name") || "N/A" %>
+                <hr style="height: 1px; border: none; background-color: lightgray; width: 100%; padding: 0px; margin: 0px">
+                <strong>Media type:</strong> <%= obj["mediaType"] || "N/A" %>
+                <hr style="height: 1px; border: none; background-color: lightgray; width: 100%; padding: 0px; margin: 0px">
+              </div>
             <% end %>
+          </div>
+          <hr style="height: 1px; border: none; background-color: lightgray; width: 100%; padding: 0px; margin: 0px">
+          <div style="width: 100%" class="row">
+            <p style="font-weight: bold">Additional info</p>
+            <div style="display: flex; flex-direction: column; margin-left: 30px">
+              <% if result["landingPage"].present? %>
+                <span><strong>Dataset page: </strong> <a href="<%= result["landingPage"] %>" target="_blank" rel="nofollow"><%= result["landingPage"] %></a></span>
+              <% end %>
+              <% if result.dig("distributions", 0, "license", "uri").present? && result.dig("distributions", 0, "license", "name").present? %>
+                <span><strong>License: </strong> <a href="<%= result["distributions"][0]["license"]["uri"] %>" target="_blank" rel="nofollow"><%= result["distributions"][0]["license"]["name"] %></a></span>
+              <% end %>
+              <% if result.dig("publisher", "name").present? %>
+                <span><strong>Publisher: </strong> <%= result["publisher"]["name"] %></span>
+              <% end %>
+              <% if result.dig("creator", "name").present? %>
+                <span><strong>Creator: </strong> <%= result["creator"]["name"] %></span>
+              <% end %>
+              <% if result["releaseDate"].present? %>
+                <span><strong>Release date: </strong><%= result["releaseDate"] %></span>
+              <% end %>
+              <% if result["updateDate"].present? %>
+                <span><strong>Update date: </strong><%= result["updateDate"] %></span>
+              <% end %>
+            </div>
           </div>
         </div>
       </div>
-    <% end %>
+      <a href="#" class="expand-link" data-card-index="<%= index %>">Read More</a>
+    </div>
+  </div>
+<% end %>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-  const expandLinks = document.querySelectorAll('.expand-link');
 
-  expandLinks.forEach(link => {
-    link.addEventListener('click', function(event) {
-      event.preventDefault();
-
-      const cardIndex = link.getAttribute('data-card-index');
-      const content = document.getElementById('full-content-' + cardIndex);
-
-      // Alterna la visibilità del contenuto
-      if (content.style.display === 'none') {
-        content.style.display = 'block';
-        link.textContent = 'Close'; 
-      } else {
-        content.style.display = 'none';
-        link.textContent = 'Read More'; 
-      }
-    });
-  });
-});
-
-    </script>
