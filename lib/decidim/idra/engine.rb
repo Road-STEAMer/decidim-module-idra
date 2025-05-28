@@ -9,16 +9,10 @@ module Decidim
 
       initializer "idra.add_routes" do |app|
         app.routes.append do
-            get "/", to: "decidim/idra/idra#index"
-
-            namespace :decidim do
-              namespace :idra do
-                namespace :api do
-                  namespace :v1 do
-                    resources :favourites, only: [:index, :create, :show, :destroy]
-                  end
-                end
-              end
+          resources :idra, only: [:index] do
+            collection do
+              post :search
+            end
           end
         end
       end
