@@ -9,11 +9,8 @@ module Decidim
 
       initializer "idra.add_routes" do |app|
         app.routes.append do
-          resources :idra, only: [:index] do
-            collection do
-              post :search
-            end
-          end
+          post 'idra/index', to: 'idra#index', as: :search_idra_index
+          get 'idra/index', to: 'idra#index', as: :idra_index
         end
       end
 

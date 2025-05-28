@@ -1,0 +1,34 @@
+
+<%= form_with url: search_idra_index_path, method: :post, local: true do |f| %>
+
+    <%= f.text_field :search, placeholder: "Cerca...", value: params[:search].presence || "", class: "search-input" %>
+  
+    <div class="dropdown-container">
+      <div class="content-on-left">
+        <div class="dropdown-pages">
+          <p style="color: black">Results:</p>
+          <%= f.select :rows, options_for_select([5, 15, 25, 50], selected: (params[:rows] || 5).to_i) %>
+        </div>
+  
+        <div class="dropdown-sort-by">
+          <p style="color: black">Sort by:</p>
+          <%= f.select :field, options_for_select(
+            [["Release date", "releaseDate"], ["Updated", "updateDate"], ["Catalogue", "nodeID"], ["Title", "title"]],
+            selected: params[:field].presence || "title"
+          ) %>
+        </div>
+      </div>
+      <%= f.submit "Submit", class: "button submit-button" %>
+    </div>
+  
+    <% if @api_results.present? %>
+      <p style="color: black; padding-bottom: 20px"><%= @api_results["count"] %> results found.</p>
+    <% end %>
+  <% end %>
+  
+  <div id="results">
+    <% if @api_results.present? %>
+      <h3>Risultati: <%= @api_results["count"] %> trovati</h3>
+    <% end %>
+  </div>
+  

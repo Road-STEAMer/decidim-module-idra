@@ -1,33 +1,4 @@
-<%= form_with url: search_idra_index_path, method: :post, html: { id: "search-form" } do |f| %>
-    <%= f.text_field :search, placeholder: "Cerca...", value: params[:search] %>
-    <%= f.submit "Cerca" %>
-<% end %>
-  
-<div id="results">
-    <% if @api_results.present? %>
-      <h3>Risultati: <%= @api_results["count"] %> trovati</h3>
-    <% end %>
-</div>
+<%= render partial: 'search_form' %>
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("search-form");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData(form);
-
-    const response = await fetch(form.action, {
-      method: "POST",
-      headers: {
-        "Accept": "application/json"
-      },
-      body: formData
-    });
-
-    const data = await response.json();
-    console.log("Response JSON:", data); 
-  });
-});
-</script>
+<%= render partial: 'search_results' %>

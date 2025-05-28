@@ -1,41 +1,44 @@
 class IdraController < Decidim::ApplicationController
+  protect_from_forgery with: :exception
+
   def index
-    # Solo per mostrare il form, i risultati vengono dalla action search
-  end
+    if request.post?
+      api_url = "https://idra-dev.urbreath.tech/Idra/api/v1/client/search"
+      catalogues_info_url = "https://idra-dev.urbreath.tech/Idra/api/v1/client/cataloguesInfo"
 
-  def search
-    api_url = "https://idra-dev.urbreath.tech/Idra/api/v1/client/search"
-    catalogues_info_url = "https://idra-dev.urbreath.tech/Idra/api/v1/client/cataloguesInfo"
+      search_value = params[:search].presence || ""
+      rows = (params[:rows].presence || 5).to_i
+      start = (params[:start].presence || 0).to_i
+      nodes = fetch_catalogue_ids(catalogues_info_url)
+      filters = Idra::BuildFilters.call(params, search_value)
 
-    search_value = params[:search].presence || ""
-    rows = (params[:rows].presence || 5).to_i
-    start = (params[:start].presence || 0).to_i
-    nodes = fetch_catalogue_ids(catalogues_info_url)
-    filters = Idra::BuildFilters.call(params, search_value)
-
-    payload = {
-      filters: filters,
-      live: false,
-      sort: {
-        field: params[:field].presence || "title",
-        mode: "asc"
-      },
-      rows: rows,
-      start: start,
-      nodes: nodes,
-      euroVocFilter: {
-        euroVoc: false,
-        sourceLanguage: "",
-        targetLanguages: []
+      payload = {
+        filters: filters,
+        live: false,
+        sort: {
+          field: params[:field].presence || "title",
+          mode: "asc"
+        },
+        rows: rows,
+        start: start,
+        nodes: nodes,
+        euroVocFilter: {
+          euroVoc: false,
+          sourceLanguage: "",
+          targetLanguages: []
+        }
       }
-    }
 
-    response = Idra::Search.call(api_url, payload)
-    @api_results = JSON.parse(response.body)
+      response = Idra::Search.call(api_url, payload)
+      @api_results = JSON.parse(response.body)
 
-    respond_to do |format|
-      format.html { render :index } # normale render HTML
-      format.json { render json: @api_results } # solo se richiesto da JS
+      respond_to do |format|
+        format.html { render "idra/index" }
+        format.json { render json: @api_results }
+      end
+    else
+      @api_results = nil
+      render "idra/index"
     end
   end
 
