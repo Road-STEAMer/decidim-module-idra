@@ -25,7 +25,7 @@
               <%= truncate_html(result["description"], length: 300) %>
             </div>
             <div class="full-content" style="display: none;", id="full-content-<%= index %>">
-              <%= result["description"].html_safe %>
+              <%= sanitize(result["description"], tags: %w[p br strong em a ul ol li], attributes: %w[href]) %>
               <div class="column" style="width: 100%; margin: 0px; padding:20px 0px 50px 0px">
                 <hr style= "height: 1px; border: none;background-color: lightgray; width: 100%; padding: 0px;margin: 0px">
                 <div style="width: 100%" class="row">
