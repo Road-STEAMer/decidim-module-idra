@@ -37,7 +37,8 @@ class IdraController < Decidim::ApplicationController
 
     #form
 
-    @search_value = params[:search].presence || '""'
+    @search_value = params[:search].to_s.strip.split(/\s+/).reject(&:blank?).join(',')
+
     selected_option = params[:field].presence || "title"
     field = selected_option.presence || "title"
     @rows = (params[:rows].presence || "5").to_i # Convert to integer if needed
