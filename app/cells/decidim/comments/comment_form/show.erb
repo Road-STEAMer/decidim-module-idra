@@ -115,6 +115,7 @@
 
 
 
+
 <%= form_for(form_object, url: decidim_comments.comments_path(order: order), method: :post, remote: true, html: { id: form_id }) do |form| %>
     <%= form.hidden_field :commentable_gid, id: nil %>
     <%= form.hidden_field :alignment, id: nil, class: "alignment-input" %>
