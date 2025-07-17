@@ -224,22 +224,14 @@
   }
 
   .additional-info-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px; /* Distanza tra gli elementi 
-}
+    display: flex;
+    flex-direction: column;
+    gap: 10px; 
+  }
 
-.additional-info-container span {
-  display: block; 
-  word-wrap: break-word; 
-}
-
-  .format-box {
-      border: 1px solid;
-      border-color: gray;
-      padding: 0px 10px 0px 10px;
-      color: gray;
-      border-radius: 10px;
+  .additional-info-container span {
+    display: block; 
+    word-wrap: break-word; 
   }
 
 
@@ -272,7 +264,8 @@
 
 
   <% if current_user&.admin? %>
-  <div style="text-align: center; margin-top: 20px; class="mb-2">
+  <div class="mb-2" style="text-align: center; margin-top: 20px;">
+
   <button id="toggle-manage" class="button button__sm button__secondary mb-2" onclick="toggleManageForm()">Manage</button>
 
   </div>
@@ -310,17 +303,19 @@
 
 
 
+
+
   <!-- Search form -->
   <%= render partial: "search_form" %>
   <!-- Filters -->
   <%= render partial: "filters" %>
   <div class="row-body">
     <!-- Left column -->
-    <div class="col col-left" <%= "hidden" if @search_value === '""' %>>
+    <div class="col col-left" <%= "hidden" if @search_value.blank? %>>
     <%= render partial: "facets" %>
     </div>
     <!-- Right Column -->
-    <div class="col col-right" <%= "hidden" if @search_value === '""' %>>
+    <div class="col col-right" <%= "hidden" if@search_value.blank? %>>
     <!-- Buttons on top -->
     <%= render partial: "top_buttons" %>
     <!-- Search Results -->
