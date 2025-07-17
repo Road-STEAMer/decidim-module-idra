@@ -16,7 +16,7 @@
           </div>
           <p <%= "hidden" if @search_value == '""'%> style="color:black; padding-bottom:20px"><%= @total_results %> results found.</p>
         </form>
-        <% if @search_value === '""'%>
+        <% if @search_value.blank? %>
           <div class="cloud">
             <p>
               <% @tags_values.each do |tag| %>
