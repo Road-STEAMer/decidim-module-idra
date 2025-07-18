@@ -1,10 +1,10 @@
 class IdraController < Decidim::ApplicationController
   def index
 
-    @api_url = params[:api_url].presence || "https://idra-dev.urbreath.tech/Idra/api/v1/client/search"
+    @api_url = params[:api_url].presence || "https://idra-ext.urbreath.tech/Idra/api/v1/client/search"
     url = URI(@api_url)
 
-    @api_catalogues_info_url = params[:api_catalogues_info_url] || "https://idra-dev.urbreath.tech/Idra/api/v1/client/cataloguesInfo"
+    @api_catalogues_info_url = params[:api_catalogues_info_url] || "https://idra-ext.urbreath.tech/Idra/api/v1/client/cataloguesInfo"
     api_catalogues_info_url =  @api_catalogues_info_url
 
     https = Net::HTTP.new(url.host, url.port)
