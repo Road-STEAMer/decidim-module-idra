@@ -1,0 +1,41 @@
+fr:
+  decidim:
+    components:
+      idra:
+        name: Idra
+        floating_help_html: >
+          <div>
+            <h2>Dans cette section</h2>
+            <p>Les utilisateurs pourront rechercher des jeux de données parmi différents portails de données ouvertes en saisissant des mots-clés ou en sélectionnant un tag dans le nuage de mots-clés.</p>
+
+            <p>Ils peuvent également filtrer par tag, format ou licence depuis les listes à gauche. Ils peuvent trier les résultats par date ou nom et choisir combien de résultats afficher.</p>
+
+            <p>Les utilisateurs peuvent explorer les données en sélectionnant un jeu de données dans la liste des résultats. Chaque jeu affiche le titre, la description, le format, la licence, la date de publication et d'autres infos.</p>
+
+            <p>Ils peuvent ajouter un jeu de données aux favoris en cliquant sur l'icône étoile jaune ( <span style="color: var(--warning); transform: scale(2); display: inline-block;">★</span> ). Les favoris resteront disponibles dans cette section.</p>
+
+            <p>Les jeux de données favoris peuvent être référencés dans un composant DECIDIM (ex. blog, proposition) ou dans un commentaire.</p>
+
+            <p>Référencement possible depuis :</p>
+            <ul>
+              <li>Le panneau d'administration via l'icône étoile ( <span style="color: var(--warning); transform: scale(2); display: inline-block;">★</span> ) ;</li>
+              <li>Un formulaire de commentaire (mode navigation uniquement).</li>
+            </ul>
+
+            <p>Ces fonctions permettent une analyse basée sur les données et un débat communautaire éclairé.</p>
+
+            <h2>Fonctionnalités principales :</h2>
+
+            <h3>Recherche et découverte</h3>
+            <ul>
+              <li>Recherche par mots-clés, tags, catégories, etc.</li>
+              <li>Vue d’ensemble des résultats avec infos détaillées : titre, type, description, date, auteur, etc.</li>
+              <li>Ajout/suppression de favoris.</li>
+            </ul>
+
+            <h3>Référencement</h3>
+            <ul>
+              <li>Référencement direct depuis les éditeurs de texte DECIDIM.</li>
+              <li>Soutien à l’analyse et au débat via les données.</li>
+            </ul>
+          </div>

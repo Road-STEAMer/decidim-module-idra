@@ -1,0 +1,41 @@
+de:
+  decidim:
+    components:
+      idra:
+        name: Idra
+        floating_help_html: >
+          <div>
+            <h2>In diesem Abschnitt</h2>
+            <p>Nutzer können Datensätze über verschiedene offene Datenportale suchen, indem sie Schlüsselwörter eingeben oder ein Tag aus der Schlagwortwolke auswählen.</p>
+
+            <p>Man kann auch nach Tag, Format oder Lizenz filtern. Ergebnisse lassen sich nach Datum oder Name sortieren und in gewünschter Anzahl anzeigen.</p>
+
+            <p>Durch Auswahl eines Datensatzes aus der Ergebnisliste erhält man Details wie Titel, Beschreibung, Format, Lizenz, Veröffentlichungsdatum usw.</p>
+
+            <p>Datensätze können durch Klicken auf das gelbe Sternsymbol ( <span style="color: var(--warning); transform: scale(2); display: inline-block;">★</span> ) als Favoriten gespeichert oder entfernt werden. Diese bleiben dauerhaft in diesem Abschnitt verfügbar.</p>
+
+            <p>Favorisierte Datensätze können später in DECIDIM-Komponenten (z. B. Blog, Vorschläge) oder Kommentaren referenziert werden.</p>
+
+            <p>Referenzierung ist möglich von:</p>
+            <ul>
+              <li>Dem Admin-Dashboard über das Sternsymbol ( <span style="color: var(--warning); transform: scale(2); display: inline-block;">★</span> );</li>
+              <li>Dem Kommentarformular (nur im Lesemodus).</li>
+            </ul>
+
+            <p>Diese Funktionen unterstützen datenbasierte Diskussionen und Analysen in der Community.</p>
+
+            <h2>Hauptfunktionen:</h2>
+
+            <h3>Datensuche und Entdeckung</h3>
+            <ul>
+              <li>Suche über Schlüsselwörter, Tags, Kategorien usw.</li>
+              <li>Ergebnisse mit Titel, Typ, Beschreibung, Datum, Autor etc.</li>
+              <li>Favoriten hinzufügen oder entfernen.</li>
+            </ul>
+
+            <h3>Referenzierung</h3>
+            <ul>
+              <li>Direktes Einfügen favorisierter Datensätze in Blogposts oder Vorschläge.</li>
+              <li>Verwendung zur datengestützten Diskussion und Analyse.</li>
+            </ul>
+          </div>

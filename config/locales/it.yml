@@ -1,0 +1,41 @@
+it:
+  decidim:
+    components:
+      idra:
+        name: Idra
+        floating_help_html: >
+          <div>
+            <h2>In questa sezione</h2>
+            <p>Gli utenti possono cercare dataset da diversi portali open data inserendo parole chiave o selezionando un tag dalla nuvola di keyword.</p>
+
+            <p>È possibile filtrare per tag, formato o licenza dai menu laterali. I risultati possono essere ordinati per data o nome e si può scegliere quanti visualizzarne.</p>
+
+            <p>Ogni risultato mostra titolo, descrizione, formato, licenza, data di pubblicazione e altre informazioni rilevanti.</p>
+
+            <p>I dataset possono essere salvati tra i preferiti cliccando sull’icona stella gialla ( <span style="color: var(--warning); transform: scale(2); display: inline-block;">★</span> ). I preferiti rimarranno sempre accessibili nella sezione.</p>
+
+            <p>I dataset salvati potranno essere referenziati all’interno di componenti DECIDIM (es. Blog, Proposte) o in un commento.</p>
+
+            <p>I preferiti sono accessibili da:</p>
+            <ul>
+              <li>Dashboard amministrativa (clic sull’icona stella <span style="color: var(--warning); transform: scale(2); display: inline-block;">★</span> );</li>
+              <li>Modulo commenti (solo in modalità lettura).</li>
+            </ul>
+
+            <p>Queste funzionalità permettono discussioni supportate dai dati e analisi partecipative.</p>
+
+            <h2>Funzionalità principali:</h2>
+
+            <h3>Ricerca e scoperta</h3>
+            <ul>
+              <li>Ricerca tramite parole chiave, tag, categorie e altri criteri.</li>
+              <li>Vista con dettagli come titolo, tipo, descrizione, data di pubblicazione, autori.</li>
+              <li>Aggiunta o rimozione dai preferiti.</li>
+            </ul>
+
+            <h3>Referenziazione</h3>
+            <ul>
+              <li>Inserimento diretto del dataset nei testi (es. proposte, blog) tramite editor.</li>
+              <li>Utilizzo dei dati per supportare l’analisi e la discussione.</li>
+            </ul>
+          </div>
