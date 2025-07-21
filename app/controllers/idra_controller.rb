@@ -1,201 +1,66 @@
 class IdraController < Decidim::ApplicationController
   def index
-
     @api_url = params[:api_url].presence || "https://idra-ext.urbreath.tech/Idra/api/v1/client/search"
-    url = URI(@api_url)
-
     @api_catalogues_info_url = params[:api_catalogues_info_url] || "https://idra-ext.urbreath.tech/Idra/api/v1/client/cataloguesInfo"
-    api_catalogues_info_url =  @api_catalogues_info_url
 
-    https = Net::HTTP.new(url.host, url.port)
-    https.use_ssl = true
-    catalogues_info_url = URI(api_catalogues_info_url)
-    catalogues_info_https = Net::HTTP.new(catalogues_info_url.host, catalogues_info_url.port)
-    catalogues_info_https.use_ssl = true
-    catalogues_info_request = Net::HTTP::Get.new(catalogues_info_url)
-    catalogues_info_response = catalogues_info_https.request(catalogues_info_request)
-    catalogues_info_data = JSON.parse(catalogues_info_response.body)
-    request = Net::HTTP::Post.new(url)
-    request["Content-Type"] = "application/json"
+    https = Net::HTTP.new(URI(@api_url).host, URI(@api_url).port).tap { |http| http.use_ssl = true }
+    catalogue_https = Net::HTTP.new(URI(@api_catalogues_info_url).host, URI(@api_catalogues_info_url).port).tap { |http| http.use_ssl = true }
 
-    # require "net/http"
-    # require "json"
+    catalogue_info_data = JSON.parse(catalogue_https.request(Net::HTTP::Get.new(URI(@api_catalogues_info_url))).body)
+    @nodes = catalogue_info_data.map { |c| c["id"].to_i }
 
-    # url = URI("http://91.109.58.79/Idra/api/v1/client/search")
-    # http = Net::HTTP.new(url.host, url.port)
+    @search_value = params[:search].to_s.strip.split(/\s+/).reject(&:blank?).join(",")
+    @rows = (params[:rows] || 5).to_i
+    @start = (params[:start] || 0).to_i
+    field = params[:field].presence || "title"
 
-    # catalogues_info_url = URI("http://91.109.58.79/Idra/api/v1/client/cataloguesInfo")
-    # catalogues_info_http = Net::HTTP.new(catalogues_info_url.host, catalogues_info_url.port)
-
-    # catalogues_info_request = Net::HTTP::Get.new(catalogues_info_url)
-    # catalogues_info_response = catalogues_info_http.request(catalogues_info_request)
-    # catalogues_info_data = JSON.parse(catalogues_info_response.body)
-
-    # request = Net::HTTP::Post.new(url)
-    # request["Content-Type"] = "application/json"
-
-
-    #form
-
-    @search_value = params[:search].to_s.strip.split(/\s+/).reject(&:blank?).join(',')
-
-    selected_option = params[:field].presence || "title"
-    field = selected_option.presence || "title"
-    @rows = (params[:rows].presence || "5").to_i # Convert to integer if needed
-    @start = (params[:start].presence || "0").to_i # Convert to integer if needed
-    start = @start
-
-    @nodes = []
-
-      catalogues_info_data.each do |catalogue_info|
-        id = catalogue_info["id"]
-        @nodes << id.to_i
-      end
-
-   
-    filters = [{
-      "field": "ALL",
-      "value": @search_value,
-    }]
-    
-
-    @tags_value = params[:tags_value]
-
-    if @tags_value.present?
-      filters.push(
-        {
-          "field": "tags",
-          "value": @tags_value.start_with?(",") ? @tags_value[1..-1] : @tags_value,
-        }
-      )
+    filters = [{ field: "ALL", value: @search_value }]
+    {
+      tags: "tags_value",
+      distributionFormats: "formats_value",
+      distributionLicenses: "licenses_value",
+      catalogues: "catalogues_value",
+      datasetThemes: "categories_value" # ← cambia qui da "categories" a "datasetThemes"
+    }.each do |filter_field, param_key|
+      val = params[param_key]
+      filters << { field: filter_field.to_s, value: val.sub(/^,/, "") } if val.present?
+      instance_variable_set("@#{param_key}", val)
     end
 
-    @formats_value = params[:formats_value]
+    req = Net::HTTP::Post.new(URI(@api_url))
+    req["Content-Type"] = "application/json"
+    req.body = {
+      filters: filters,
+      live: false,
+      sort: { field: field, mode: "asc" },
+      rows: @rows,
+      start: @start,
+      nodes: @nodes,
+      euroVocFilter: { euroVoc: false, sourceLanguage: "", targetLanguages: [] }
+    }.to_json
 
-    if @formats_value.present?
-      filters.push(
-        {
-          "field": "distributionFormats",
-          "value": @formats_value.start_with?(",") ? @formats_value[1..-1] : @formats_value,
-        }
-      )
-    end
-
-    @licenses_value = params[:licenses_value]
-
-    if @licenses_value.present?
-      filters.push(
-        {
-          "field": "distributionLicenses",
-          "value": @licenses_value.start_with?(",") ? @licenses_value[1..-1] : @licenses_value,
-        }
-      )
-    end
-
-    @catalogues_value = params[:catalogues_value]
-
-    if @catalogues_value.present?
-      filters.push(
-        {
-          "field": "catalogues",
-          "value": @catalogues_value.start_with?(",") ? @catalogues_value[1..-1] : @catalogues_value,
-        }
-      )
-    end
-
-    @categories_value = params[:categories_value]
-
-    if @categories_value.present?
-      filters.push(
-        {
-          "field": "categories",
-          "value": @categories_value.start_with?(",") ? @categories_value[1..-1] : @categories_value,
-        }
-      )
-    end
-
-    deleted_filter = params[:deleted_filter]
-
-    request.body = JSON.dump({
-      "filters": filters,
-      "live": false,
-      "sort": {
-        "field": field,
-        "mode": "asc",
-
-      },
-      "rows": @rows.to_i,
-      "start": start,
-      "nodes": @nodes,
-      "euroVocFilter": {
-        "euroVoc": false,
-        "sourceLanguage": "",
-        "targetLanguages": [],
-      },
-    })
-
-    response = https.request(request) #change https to http if use the other configuration
-
-    @api_results = JSON.parse(response.read_body)
-
+    @api_results = JSON.parse(https.request(req).read_body)
     @total_results = @api_results["count"]
 
-
-    @selected_filters = []
-
-    @deleted_filters = []
-
-    @limit = 10
-
-    if @api_results.size > 0
-      @tags = @api_results["facets"][0]
-      @formats = @api_results["facets"][1]
-      @licenses = @api_results["facets"][2]
-      @catalogues = @api_results["facets"][3]
-      @categories = @api_results["facets"][4]
+    if @api_results["facets"]
+      %w[tags formats licenses catalogues datasetThemes].each_with_index do |name, i|
+        var_name = name == "datasetThemes" ? "categories" : name
+        instance_variable_set("@#{var_name}", @api_results["facets"][i])
+        instance_variable_set("@#{var_name}_values", @api_results["facets"][i]["values"])
+      end
     end
 
-    @tags_values = @tags["values"]
-    @formats_values = @formats["values"]
-    @licenses_values = @licenses["values"]
-    @catalogues_values = @catalogues["values"]
-    @categories_values = @categories["values"]
-
-    if params[:tags_value].present?
-      @selected_filters << params[:tags_value].split(",")
-    end
-
-    if params[:formats_value].present?
-      @selected_filters << params[:formats_value].split(",")
-    end
-
-    if params[:licenses_value].present?
-      @selected_filters << params[:licenses_value].split(",")
-    end
-
-    if params[:catalogues_value].present?
-      @selected_filters << params[:catalogues_value].split(",")
-    end
-
-    if params[:categories_value].present?
-      @selected_filters << params[:categories_value].split(",")
-    end
-
-    if params[:deleted_filter].present?
-      @selected_filters.delete(deleted_filter)
-    end
+    @selected_filters = %w[tags_value formats_value licenses_value catalogues_value categories_value].map { |f| params[f]&.split(",") }.compact
+    @selected_filters.delete(params[:deleted_filter]) if params[:deleted_filter].present?
 
     @datasets = SavedDatasets.where(decidim_user: current_user)
     @element_count = @datasets.count
-
-    @list = []
-
-    @datasets.each do |data|
-      @list << data.dataset_id
-    end
+    @list = @datasets.pluck(:dataset_id)
 
     render "idra/index"
   end
+
+
 
     def create
       selected_title = params[:selected_titles]
