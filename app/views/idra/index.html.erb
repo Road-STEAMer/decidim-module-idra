@@ -312,11 +312,11 @@
   <%= render partial: "filters" %>
   <div class="row-body">
     <!-- Left column -->
-    <div class="col col-left" <%= "hidden" if @search_value.blank? %>>
+    <div class="col col-left">
     <%= render partial: "facets" %>
     </div>
     <!-- Right Column -->
-    <div class="col col-right" <%= "hidden" if@search_value.blank? %>>
+    <div class="col col-right">
     <!-- Buttons on top -->
     <%= render partial: "top_buttons" %>
     <!-- Search Results -->

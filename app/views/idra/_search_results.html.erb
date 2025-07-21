@@ -13,10 +13,11 @@
                 <button id='buttonId-<%= result["id"] %>' class="bg-transparent" style="cursor: pointer; transform: scale(1.5,1.5)" 
   onclick="toggleStarAndSaveTitle('<%= result['title'] %>', '<%= result["id"] %>', '<%= result['landingPage'] %>');
   " data-star="<% if @list.include?(result["id"]) %>1<% else %>0<% end %>">
-                  <% if @list.include?(result["id"]) %>
-                    <span style="color: var(--warning)">★</span>
-                  <% else %>☆<% end %>
-                </button>
+  <% if @list.include?(result["id"]) %>
+    <span style="color: var(--warning)">★</span>
+  <% else %>☆<% end %>
+</button>
+
               <% end %>
             </div>
           </div>
