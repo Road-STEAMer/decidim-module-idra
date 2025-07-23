@@ -14,7 +14,7 @@
             </div>
             <input class="button submit-button " type="submit" value="Submit">
           </div>
-          <p <%= "hidden" if @search_value == '""'%> style="color:black; padding-bottom:20px"><%= @total_results %> results found.</p>
+          <p <%= "hidden" if @search_value == '""'%> style="color:black; padding-top:20px"><%= @total_results %> results found.</p>
         </form>
         <% if @search_value.blank? %>
           <div class="cloud">
